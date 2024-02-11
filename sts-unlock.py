@@ -5,18 +5,27 @@
 import sys
 import json
 import os
+import shutil
 
 
 def edit_json(pref_dir, filename, fn):
     config_file = os.path.join(pref_dir, filename)
 
-    with f as open(config_file, "r"):
+    with open(config_file, "r") as f:
         config = json.load(f)
 
     fn(config)
 
-    with f as open(config_file, "w")
+    with open(config_file, "w") as f:
         json.dump(config, f)
+
+
+def take_backups(pref_dir):
+    filenames = ["STSDataVagabond", "STSDataTheSilent", "STSDataDefect", "STSDataWatcher", "STSPlayer", "STSUnlockProgress", "STSSeenBosses", "STSUnlocks"]
+    for filename in filenames:
+        path = os.path.join(pref_dir, filename)
+        path_bak = os.path.join(pref_dir, filename + ".before-unlock")
+        shutil.copy(path, path_bak)
 
 
 def unlock_ascension(pref_dir):
@@ -61,7 +70,7 @@ def unlock_act_4(pref_dir):
     edit_json(pref_dir, "STSPlayer", fn)
 
 
-def unlock_characters(config):
+def unlock_characters(pref_dir):
     def fn(config):
         config["The Silent"] = "2"
         config["Defect"] = "2"
@@ -72,6 +81,7 @@ def unlock_characters(config):
 def main(argv):
     pref_dir = argv[0]
     print(f"Unlocking StS files in {pref_dir}...")
+    take_backups(pref_dir)
     unlock_ascension(pref_dir)
     unlock_relics_cards(pref_dir)
     unlock_bosses(pref_dir)
