@@ -9,23 +9,30 @@ import shutil
 
 
 def edit_json(pref_dir, filename, fn):
-    config_file = os.path.join(pref_dir, filename)
+    for prefix in ["", "1_", "2_"]:
+        config_file = os.path.join(pref_dir, prefix + filename)
+        if os.path.isfile(config_file):
+            with open(config_file, "r") as f:
+                config = json.load(f)
+            fn(config)
+            with open(config_file, "w") as f:
+                json.dump(config, f)
 
-    with open(config_file, "r") as f:
-        config = json.load(f)
 
-    fn(config)
-
-    with open(config_file, "w") as f:
-        json.dump(config, f)
+def copy_static(pref_dir):
+    for filename in ["STSSeenCards", "STSSeenRelics", "STSUnlocks"]:
+        for prefix in ["", "1_", "2_"]:
+            shutil.copy(filename, os.path.join(pref_dir, prefix + filename))
 
 
 def take_backups(pref_dir):
-    filenames = ["STSDataVagabond", "STSDataTheSilent", "STSDataDefect", "STSDataWatcher", "STSPlayer", "STSUnlockProgress", "STSSeenBosses", "STSUnlocks"]
+    filenames = ["STSDataVagabond", "STSDataTheSilent", "STSDataDefect", "STSDataWatcher", "STSPlayer", "STSUnlockProgress", "STSSeenBosses", "STSUnlocks", "STSSeenCards", "STSSeenRelics"]
     for filename in filenames:
-        path = os.path.join(pref_dir, filename)
-        path_bak = os.path.join(pref_dir, filename + ".before-unlock")
-        shutil.copy(path, path_bak)
+        for prefix in ["", "1_", "2_"]:
+            path = os.path.join(pref_dir, prefix + filename)
+            path_bak = os.path.join(pref_dir, prefix + filename + ".before-unlock")
+            if os.path.isfile(path):
+                shutil.copy(path, path_bak)
 
 
 def unlock_ascension(pref_dir):
@@ -45,6 +52,14 @@ def unlock_relics_cards(pref_dir):
         config["IRONCLADUnlockLevel"] = "6"
         config["THE_SILENTUnlockLevel"] = "6"
         config["DEFECTUnlockLevel"] = "5"
+        config["WATCHERProgress"] = "3000"
+        config["IRONCLADProgress"] = "3000"
+        config["THE_SILENTProgress"] = "3000"
+        config["DEFECTProgress"] = "3000"
+        config["WATCHERCurrentCost"] = "3000"
+        config["IRONCLADCurrentCost"] = "3000"
+        config["THE_SILENTCurrentCost"] = "3000"
+        config["DEFECTCurrentCost"] = "3000"
     edit_json(pref_dir, "STSUnlockProgress", fn)
 
 
@@ -70,23 +85,15 @@ def unlock_act_4(pref_dir):
     edit_json(pref_dir, "STSPlayer", fn)
 
 
-def unlock_characters(pref_dir):
-    def fn(config):
-        config["The Silent"] = "2"
-        config["Defect"] = "2"
-        config["Watcher"] = "2"
-    edit_json(pref_dir, "STSUnlocks", fn)
-
-
 def main(argv):
     pref_dir = argv[0]
     print(f"Unlocking StS files in {pref_dir}...")
     take_backups(pref_dir)
+    copy_static(pref_dir)
     unlock_ascension(pref_dir)
     unlock_relics_cards(pref_dir)
     unlock_bosses(pref_dir)
     unlock_act_4(pref_dir)
-    unlock_characters(pref_dir)
     print("Done!")
 
 
